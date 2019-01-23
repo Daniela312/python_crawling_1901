@@ -2,29 +2,40 @@
 
 from bs4 import BeautifulSoup
 import urllib.request
+import re
 
-OUTPUT_FILE_NAME = 'output.txt'
-URL = "https://news.naver.com/main/ranking/read.nhn?rankingType=popular_day&oid=003&aid=0009022623&date=20190121&type=1&rankingSectionId=100&rankingSeq=1"
+TOP10_FILE_NAME = 'Top10News.hwp'
+URL = "https://news.naver.com/main/list.nhn?mode=LSD&mid=sec&sid1=001"
 
 #function of crawling
-def get_news(URL):
+def getTop10News(URL):
+
+    #Open Text File
+    f = open(TOP10_FILE_NAME, 'a')
+
+    #Web Crawling
     source_code = urllib.request.urlopen(URL)
-    soup = BeautifulSoup(source_code, 'html', from_encoding='utf-8')
-    text = ''
+    soup = BeautifulSoup(source_code, 'html.parser', from_encoding='utf-8')
 
-    for item in soup.find_all('div',id='articleBodyContents'):
-        text = text + str(item.find_all(text=True))
+    table = soup.find(id="lnb.mainnews")
+    lines = table.ul.find_all('li')
+    for line in lines[:10]:
+        a = line.find('a')
+        link = a.attrs['href']
+        title = a.attrs['title']
+
+        #Write on the Text
+        f.write(link)
+        f.write("\n")
+        f.write(title)
+        f.write("\n\n")
+
+    f.close()
+
     
-    return text
-
-
 
 def main():
-    get_news(URL)
-    f = open(OUTPUT_FILE_NAME, 'w')
-    result_text = get_news(URL)
-    f.write(result_text)
-    f.close()
+    getTop10News(URL)
 
 
 main()
