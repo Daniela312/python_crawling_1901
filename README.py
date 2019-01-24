@@ -9,26 +9,33 @@ NewsScraping = 'NewsScraping.txt'
 URL = "https://news.naver.com/main/list.nhn?mode=LSD&mid=sec&sid1=001"
 
 def clean_text(text):
-    cleaned_text = re.sub('[a-zA-Z]', '', text)
-    # cleaned_text = re.sub('[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"]', '', cleaned_text))
+    cleaned_text = re.sub('[\{\}\/?.,;:|\)*~!^\-_+<>@\#$%&\\\=\(\'\"]', '', text)
+    cleaned_text = re.sub('[a-zA-Z]', '', cleaned_text)
+    cleaned_text = re.sub('본문 내용', '', cleaned_text)
+    cleaned_text = re.sub('플레이어', '', cleaned_text)
+    cleaned_text = re.sub('오류를 우회하기 위한 함수 추가', '', cleaned_text)
+    # cleaned_text = re.sub('▲', '', sp[1])
+    # return cleaned_text
     return cleaned_text
 
-def newsScraping(url_news):
-    with open(NewsScraping, 'a', encoding='UTF-8', newline='') as f:
+def newsScraping(url_news, title):
+    with open(NewsScraping, 'a', encoding='utf-8') as f:
+
+        f.write(title)
+        f.write("\n")
 
         source_code = urllib.request.urlopen(url_news)
-        soup = BeautifulSoup(source_code, 'html.parser', from_encoding='utf-8')
+        soup = BeautifulSoup(source_code, 'lxml', from_encoding='utf-8')
 
         text = ''
         for item in soup.find_all('div', id='articleBodyContents'):
-            text = text + str(item.find_all(text=True))
-         
+            text = text + str(item).replace('<br/>', '\n')
+            
         f.write(clean_text(text))
         f.write("\n\n\n")
         f.close
 
 
-#function of crawling
 def getTop10News(URL):
 
     #Open Text File
@@ -44,7 +51,7 @@ def getTop10News(URL):
         a = line.find('a')
         link = a.attrs['href']
         title = a.attrs['title']
-        newsScraping(link)
+        newsScraping(link, title)
 
         #Write on the Text
         f.write(link)
